@@ -4,22 +4,33 @@ from django.http import JsonResponse
 # Third party imports
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from .serializers import PostSerializer
-from .models import Post
+from rest_framework.permissions import AllowAny
+from .serializers import UserSerializer,RegisterSerializer
+from .models import User
+from rest_framework.authentication import TokenAuthentication
+from rest_framework import generics
 
-class TestView(APIView):
-    permission_classes = (IsAuthenticated,)
-
+class UserDetailAPI(APIView):
+    permission_classes = (AllowAny,)
+    authentication_classes = (TokenAuthentication,)
     def get(self,request,*args,**kwargs):
-        qs = Post.objects.all()
-        # post = qs.first()
-        serializer = PostSerializer(qs,many = True)
+        '''
+        This api endpoint gives us the details of the user.
+
+        Args: request.
+        Returns: serializer data.
+        '''
+        qs = User.objects.get(id = request.user.id)
+        serializer = UserSerializer(qs)
         return Response(serializer.data)
 
-    def post(self,request,*args,**kwargs):
-        serializer = PostSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors)
+    # def post(self,request,*args,**kwargs):
+    #     serializer = PostSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(serializer.data)
+    #     return Response(serializer.errors)
+
+class RegisterUserAPIView(generics.CreateAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = RegisterSerializer
